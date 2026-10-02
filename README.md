@@ -28,7 +28,7 @@ pip install -r requirements.txt
 # 2. Configure Snowflake credentials (pick one method)
 
 # Method A — Named connection (if ~/.snowflake/connections.toml exists)
-export SNOWFLAKE_CONNECTION_NAME=HA10998
+export SNOWFLAKE_CONNECTION_NAME=Your account verifier (SnowFlake)
 
 # Method B — Explicit credentials
 export SNOWFLAKE_ACCOUNT=your_account.region
