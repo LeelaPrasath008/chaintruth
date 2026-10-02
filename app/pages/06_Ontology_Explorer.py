@@ -3,8 +3,11 @@ import pandas as pd
 from utils.db import run_query
 from utils.theme import T
 from utils.components import page_header, kpi_card, kpi_grid, section, footer
+from utils.tour import render_tour_banner
+from utils.data_cleaning import safe_multiselect_options
 
 page_header("Ontology Explorer", "Browse the ChainTruth supply-chain ontology")
+render_tour_banner()
 
 @st.cache_data(ttl=300)
 def load_entities():
@@ -33,9 +36,9 @@ st.sidebar.markdown("**Search & Filter**")
 search = st.sidebar.text_input("Search across all tables", placeholder="e.g. OTIF, Supplier, order...")
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Metric Filters**")
-owners = sorted(metrics_df["OWNER_TEAM"].unique())
+owners = safe_multiselect_options(metrics_df["OWNER_TEAM"])
 sel_owners = st.sidebar.multiselect("Owner Team", options=owners)
-units = sorted(metrics_df["UNIT"].unique())
+units = safe_multiselect_options(metrics_df["UNIT"])
 sel_units = st.sidebar.multiselect("Unit", options=units)
 sel_canonical = st.sidebar.radio("Canonical Status", ["All", "Canonical Only", "Variants Only"], index=0)
 
@@ -65,11 +68,11 @@ elif sel_canonical == "Variants Only":
 # -- overview KPIs -------------------------------------------------------------
 section("Ontology overview")
 kpi_grid([
-    kpi_card("Entity Types", str(len(filtered_entities)), status="healthy"),
-    kpi_card("Relationships", str(len(filtered_rels)), status="healthy"),
-    kpi_card("Metrics", str(len(filtered_metrics)), status="healthy"),
-    kpi_card("Canonical", str(int(filtered_metrics["IS_CANONICAL"].sum())), status="healthy"),
-    kpi_card("Owner Teams", str(filtered_metrics["OWNER_TEAM"].nunique())),
+    kpi_card("Entity Types", str(len(filtered_entities)), status="healthy", icon_name="factory"),
+    kpi_card("Relationships", str(len(filtered_rels)), status="healthy", icon_name="link"),
+    kpi_card("Metrics", str(len(filtered_metrics)), status="healthy", icon_name="chart"),
+    kpi_card("Canonical", str(int(filtered_metrics["IS_CANONICAL"].sum())), status="healthy", icon_name="shield"),
+    kpi_card("Owner Teams", str(filtered_metrics["OWNER_TEAM"].nunique()), icon_name="users"),
 ])
 
 # =============================================================================

@@ -1,0 +1,7 @@
+ENTITY_TYPE_ID,ENTITY_NAME,DESCRIPTION,SOURCE_TABLE,PRIMARY_KEY_COLUMN,CREATED_AT
+CUSTOMER,Customer,End consumer who places orders for parts,CHAINTRUTH_DB.RAW.CUSTOMERS,CUSTOMER_ID,2026-10-01 23:16:50.240
+ORDER,Order,"Purchase request from a customer for a specific part, fulfilled by a supplier from a plant",CHAINTRUTH_DB.RAW.ORDERS,ORDER_ID,2026-10-01 23:16:50.240
+PART,Part,Item sourced from suppliers and assembled or shipped from plants,CHAINTRUTH_DB.RAW.PARTS,PART_ID,2026-10-01 23:16:50.240
+PLANT,Plant,Manufacturing or distribution site that fulfills customer orders,CHAINTRUTH_DB.RAW.PLANTS,PLANT_ID,2026-10-01 23:16:50.240
+SHIPMENT,Shipment,Physical movement of goods from plant to customer for a specific order,CHAINTRUTH_DB.RAW.SHIPMENTS,SHIPMENT_ID,2026-10-01 23:16:50.240
+SUPPLIER,Supplier,Organization that provides parts to manufacturing plants,CHAINTRUTH_DB.RAW.SUPPLIERS,SUPPLIER_ID,2026-10-01 23:16:50.240

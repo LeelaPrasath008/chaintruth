@@ -20,6 +20,9 @@ def _get_secret(key: str, default: str | None = None) -> str | None:
 
 @st.cache_resource
 def get_connection():
+    # Check wizard connection first
+    if "_wizard_conn" in st.session_state:
+        return st.session_state["_wizard_conn"]
     conn_name = os.environ.get("SNOWFLAKE_CONNECTION_NAME")
     if conn_name:
         return snowflake.connector.connect(connection_name=conn_name)
@@ -58,6 +61,10 @@ def _convert_decimals(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def run_query(sql: str, retries: int = 2) -> pd.DataFrame:
+    from utils.data_provider import is_demo_mode, demo_query
+    if is_demo_mode():
+        return demo_query(sql)
+
     last_err = None
     for attempt in range(retries + 1):
         try:
@@ -74,6 +81,29 @@ def run_query(sql: str, retries: int = 2) -> pd.DataFrame:
             else:
                 raise
     raise last_err  # unreachable but satisfies type checker
+
+
+def connect_from_wizard(account: str, user: str, password: str,
+                        warehouse: str, database: str, role: str) -> bool:
+    """Attempt connection with user-provided credentials. Returns True on success."""
+    try:
+        conn = snowflake.connector.connect(
+            account=account, user=user, password=password,
+            warehouse=warehouse, database=database, role=role,
+        )
+        conn.cursor().execute("SELECT 1")
+        st.session_state["_wizard_conn"] = conn
+        st.session_state["app_mode"] = "snowflake"
+        st.cache_resource.clear()
+        return True
+    except Exception as e:
+        st.error(f"Connection failed: {e}")
+        return False
+
+
+@st.cache_resource
+def _get_wizard_connection():
+    return st.session_state.get("_wizard_conn")
 
 
 def safe_float(val, default=0.0):

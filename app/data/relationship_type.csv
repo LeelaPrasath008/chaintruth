@@ -1,0 +1,8 @@
+RELATIONSHIP_ID,RELATIONSHIP_NAME,FROM_ENTITY_TYPE_ID,TO_ENTITY_TYPE_ID,CARDINALITY,JOIN_COLUMN_FROM,JOIN_COLUMN_TO,DESCRIPTION,CREATED_AT
+REL_01,Customer places Order,CUSTOMER,ORDER,ONE_TO_MANY,CUSTOMER_ID,CUSTOMER_ID,A customer can place many orders,2026-10-01 23:16:50.643
+REL_02,Order contains Part,ORDER,PART,MANY_TO_ONE,PART_ID,PART_ID,Each order is for one part; a part appears in many orders,2026-10-01 23:16:50.643
+REL_03,Supplier fulfills Order,SUPPLIER,ORDER,ONE_TO_MANY,SUPPLIER_ID,SUPPLIER_ID,A supplier fulfills many orders,2026-10-01 23:16:50.643
+REL_04,Plant produces Order,PLANT,ORDER,ONE_TO_MANY,PLANT_ID,PLANT_ID,A plant produces goods for many orders,2026-10-01 23:16:50.643
+REL_05,Order has Shipment,ORDER,SHIPMENT,ONE_TO_MANY,ORDER_ID,ORDER_ID,An order can have one or more shipments,2026-10-01 23:16:50.643
+REL_06,Supplier supplies Part,SUPPLIER,PART,MANY_TO_MANY,SUPPLIER_ID,PART_ID,Many suppliers can supply many parts (via orders),2026-10-01 23:16:50.643
+REL_07,Plant ships to Customer,PLANT,CUSTOMER,MANY_TO_MANY,PLANT_ID,CUSTOMER_ID,Plants serve many customers (via orders),2026-10-01 23:16:50.643

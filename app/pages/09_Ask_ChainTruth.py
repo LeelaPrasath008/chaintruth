@@ -3,9 +3,11 @@ import pandas as pd
 import re
 from utils.db import run_query as run, safe_float
 from utils.theme import T
-from utils.components import page_header, section, footer
+from utils.components import page_header, section, footer, typing_indicator
+from utils.tour import render_tour_banner
 
 page_header("Ask ChainTruth", "AI-powered supply chain intelligence grounded in governed analytics views")
+render_tour_banner()
 
 # -- quick action buttons ------------------------------------------------------
 st.sidebar.markdown("**Quick actions**")
@@ -320,10 +322,18 @@ if prompt := (st.session_state.pop("_prefill", None) or st.chat_input("Ask a sup
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("Querying governed analytics views..."):
-            intent = detect_intent(prompt)
-            handler = HANDLERS.get(intent, handle_unknown)
-            response = handler(prompt)
+        ph = st.empty()
+        with ph.container():
+            typing_indicator()
+        intent = detect_intent(prompt)
+        handler = HANDLERS.get(intent, handle_unknown)
+        response = handler(prompt)
+        ph.empty()
         st.markdown(response)
 
     st.session_state.messages.append({"role": "assistant", "content": response})
+
+    # Track query history
+    if "ct_ui_history" not in st.session_state:
+        st.session_state["ct_ui_history"] = []
+    st.session_state["ct_ui_history"].insert(0, prompt)

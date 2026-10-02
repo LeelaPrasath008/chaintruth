@@ -4,17 +4,20 @@ import plotly.express as px
 import plotly.graph_objects as go
 from utils.db import run_query as run, safe_float
 from utils.theme import T
-from utils.components import page_header, kpi_card, kpi_grid, section, insight, footer
+from utils.components import page_header, kpi_card, kpi_grid, section, insight, footer, enhanced_table, render_lineage_flow
 from utils.charts import render_chart, SERIES
+from utils.tour import render_tour_banner
+from utils.data_cleaning import safe_multiselect_options
 
 page_header("Conflict Center", "Quantifying how competing OTIF definitions produce different verdicts from identical data")
+render_tour_banner()
 
 # -- sidebar filters -----------------------------------------------------------
 st.sidebar.markdown("**Filters**")
 regions = run("SELECT DISTINCT SUPPLIER_REGION AS R FROM CHAINTRUTH_DB.ANALYTICS.CHAINTRUTH_OTIF ORDER BY R")
 segments = run("SELECT DISTINCT CUSTOMER_SEGMENT AS S FROM CHAINTRUTH_DB.ANALYTICS.CHAINTRUTH_OTIF ORDER BY S")
-sel_regions = st.sidebar.multiselect("Supplier Region", regions["R"].tolist())
-sel_segments = st.sidebar.multiselect("Customer Segment", segments["S"].tolist())
+sel_regions = st.sidebar.multiselect("Supplier Region", safe_multiselect_options(regions["R"]))
+sel_segments = st.sidebar.multiselect("Customer Segment", safe_multiselect_options(segments["S"]))
 
 clauses = []
 if sel_regions:
@@ -187,10 +190,22 @@ display = by_supplier.rename(columns={
     "RELIABILITY_SCORE": "Reliability", "SHIPMENTS": "Shipments", "CONFLICTED": "Conflicted",
     "CONFLICT_RATE": "Conflict %", "ERP_OT": "ERP OT %", "SUP_OT": "Supplier OT %", "SPREAD": "Spread (pp)",
 })
-st.dataframe(
+enhanced_table(
     display[["ID", "Supplier", "Region", "Reliability", "Shipments",
              "Conflicted", "Conflict %", "ERP OT %", "Supplier OT %", "Spread (pp)"]],
-    use_container_width=True, hide_index=True, height=400,
+    key="conflict_suppliers",
 )
+
+# =============================================================================
+# DATA LINEAGE
+# =============================================================================
+section("Data Lineage")
+render_lineage_flow([
+    {"icon": "factory", "title": "Source System", "detail": "ORDERS + SHIPMENTS"},
+    {"icon": "graph", "title": "Ontology Layer", "detail": "ENTITY_TYPE + RELATIONSHIP_TYPE"},
+    {"icon": "book", "title": "Metric Registry", "detail": "3 OTIF definitions"},
+    {"icon": "chart", "title": "Analytics View", "detail": "CHAINTRUTH_OTIF"},
+    {"icon": "sparkle", "title": "Conflict Center", "detail": "This page"},
+])
 
 footer()

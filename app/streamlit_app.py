@@ -1,11 +1,13 @@
 """ChainTruth — entry point.
 
-Defines the grouped st.navigation and sidebar brand.
+Dual-mode: landing page for mode selection, then grouped st.navigation.
 Page content lives in pages/*.py; this file has no analytics logic.
 """
 import streamlit as st
 from utils.theme import apply_theme
 from utils.components import sidebar_brand
+from utils.landing import render_landing, render_sidebar_mode_info
+from utils.tour import render_tour_banner
 
 st.set_page_config(
     page_title="ChainTruth",
@@ -13,7 +15,21 @@ st.set_page_config(
     layout="wide",
 )
 apply_theme()
+
+# ---------- Landing page (no mode selected) ----------
+if "app_mode" not in st.session_state:
+    render_landing()
+    st.stop()
+
+# ---------- App mode active — show sidebar + navigation ----------
 sidebar_brand()
+render_sidebar_mode_info()
+
+# Start Guided Demo button in sidebar (demo mode only)
+if st.session_state.get("app_mode") == "demo" and "tour_step" not in st.session_state:
+    if st.sidebar.button("Start Guided Tour", use_container_width=True, key="start_tour"):
+        st.session_state["tour_step"] = 0
+        st.rerun()
 
 pg = st.navigation(
     {

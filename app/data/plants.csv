@@ -1,0 +1,11 @@
+PLANT_ID,PLANT_NAME,REGION,COUNTRY
+PLT-00,Shanghai Hub,APAC,China
+PLT-01,Munich Center,EMEA,Germany
+PLT-02,Detroit Works,NA,USA
+PLT-03,Tokyo Precision,APAC,Japan
+PLT-04,Chennai Forge,APAC,India
+PLT-05,Monterrey Plant,LATAM,Mexico
+PLT-06,Sao Paulo Ops,LATAM,Brazil
+PLT-07,Seoul Tech,APAC,South Korea
+PLT-08,Taipei Micro,APAC,Taiwan
+PLT-09,Hanoi Assembly,APAC,Vietnam

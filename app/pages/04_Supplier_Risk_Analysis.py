@@ -4,10 +4,13 @@ import plotly.express as px
 import plotly.graph_objects as go
 from utils.db import run_query as run, safe_float
 from utils.theme import T
-from utils.components import page_header, kpi_card, kpi_grid, section, insight, footer
+from utils.components import page_header, kpi_card, kpi_grid, section, insight, footer, enhanced_table, render_lineage_flow
 from utils.charts import render_chart, SERIES
+from utils.tour import render_tour_banner
+from utils.data_cleaning import safe_multiselect_options
 
 page_header("Supplier Risk", "Identifying which suppliers put the most revenue at risk and why")
+render_tour_banner()
 
 # -- sidebar filters -----------------------------------------------------------
 st.sidebar.markdown("**Filters**")
@@ -15,9 +18,9 @@ regions = run("SELECT DISTINCT SUPPLIER_REGION AS R FROM CHAINTRUTH_DB.ANALYTICS
 segments = run("SELECT DISTINCT CUSTOMER_SEGMENT AS S FROM CHAINTRUTH_DB.ANALYTICS.REVENUE_AT_RISK_ANALYTICS ORDER BY S")
 plants = run("SELECT DISTINCT PLANT_ID AS P FROM CHAINTRUTH_DB.ANALYTICS.REVENUE_AT_RISK_ANALYTICS ORDER BY P")
 
-sel_regions = st.sidebar.multiselect("Supplier Region", regions["R"].tolist())
-sel_segments = st.sidebar.multiselect("Customer Segment", segments["S"].tolist())
-sel_plants = st.sidebar.multiselect("Plant", plants["P"].tolist())
+sel_regions = st.sidebar.multiselect("Supplier Region", safe_multiselect_options(regions["R"]))
+sel_segments = st.sidebar.multiselect("Customer Segment", safe_multiselect_options(segments["S"]))
+sel_plants = st.sidebar.multiselect("Plant", safe_multiselect_options(plants["P"]))
 
 clauses = []
 if sel_regions:
@@ -232,15 +235,22 @@ display = suppliers.rename(columns={
     "AT_RISK_ORDERS": "At Risk", "REVENUE_AT_RISK": "Risk $", "RISK_PCT": "Risk %",
     "LATE_ORDERS": "Late", "SHORT_ORDERS": "Short", "OVERDUE_ORDERS": "Overdue",
 })
-st.dataframe(
+enhanced_table(
     display[["ID", "Supplier", "Country", "Region", "Orders", "Order Value",
              "At Risk", "Risk $", "Risk %", "Late", "Short", "Overdue"]],
-    use_container_width=True, hide_index=True, height=450,
-    column_config={
-        "Order Value": st.column_config.NumberColumn(format="$%.0f"),
-        "Risk $": st.column_config.NumberColumn(format="$%.0f"),
-        "Risk %": st.column_config.ProgressColumn(min_value=0, max_value=100, format="%.1f%%"),
-    },
+    key="supplier_risk_detail", height=450,
 )
+
+# =============================================================================
+# DATA LINEAGE
+# =============================================================================
+section("Data Lineage")
+render_lineage_flow([
+    {"icon": "factory", "title": "Source System", "detail": "ORDERS + SHIPMENTS"},
+    {"icon": "graph", "title": "Ontology Layer", "detail": "ENTITY_TYPE"},
+    {"icon": "book", "title": "Metric Registry", "detail": "Revenue At Risk"},
+    {"icon": "chart", "title": "Analytics View", "detail": "REVENUE_AT_RISK_ANALYTICS"},
+    {"icon": "sparkle", "title": "Supplier Risk", "detail": "This page"},
+])
 
 footer()

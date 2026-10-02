@@ -6,6 +6,8 @@ from utils.db import run_query as run, safe_float
 from utils.theme import T
 from utils.components import page_header, kpi_card, kpi_grid, section, insight, insight_panel, alert_card, footer
 from utils.charts import render_chart, SERIES
+from utils.tour import render_tour_banner
+from utils.data_cleaning import safe_multiselect_options
 
 st.markdown(
     f'<div style="text-align:center; padding:24px 0 6px 0;">'
@@ -15,6 +17,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 page_header("Dashboard", "Supply chain governance and decision intelligence")
+render_tour_banner()
 
 # -- sidebar filters -----------------------------------------------------------
 suppliers_df = run(
@@ -32,8 +35,8 @@ sel_suppliers = st.sidebar.multiselect(
     "Supplier", options=suppliers_df["SUPPLIER_ID"].tolist(),
     format_func=lambda x: f"{x} - {suppliers_df.loc[suppliers_df['SUPPLIER_ID']==x, 'SUPPLIER_NAME'].iloc[0]}",
 )
-sel_regions = st.sidebar.multiselect("Region", options=regions_df["REGION"].tolist())
-sel_segments = st.sidebar.multiselect("Customer Segment", options=segments_df["SEGMENT"].tolist())
+sel_regions = st.sidebar.multiselect("Region", options=safe_multiselect_options(regions_df["REGION"]))
+sel_segments = st.sidebar.multiselect("Customer Segment", options=safe_multiselect_options(segments_df["SEGMENT"]))
 sel_plants = st.sidebar.multiselect(
     "Plant", options=plants_df["PLANT_ID"].tolist(),
     format_func=lambda x: f"{x} - {plants_df.loc[plants_df['PLANT_ID']==x, 'PLANT_NAME'].iloc[0]}",

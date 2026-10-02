@@ -6,6 +6,7 @@ from utils.db import run_query as run, safe_float
 from utils.theme import T
 from utils.components import page_header, kpi_card, kpi_grid, section, footer
 from utils.charts import render_chart, SERIES
+from utils.data_cleaning import safe_multiselect_options
 
 page_header("Supply Chain Network", "Supplier to Plant to Customer flow visualization")
 
@@ -19,8 +20,8 @@ plant_cust = run("SELECT DISTINCT o.PLANT_ID, o.CUSTOMER_ID FROM CHAINTRUTH_DB.R
 
 # -- sidebar filters -----------------------------------------------------------
 st.sidebar.markdown("**Network filters**")
-sel_regions = st.sidebar.multiselect("Supplier Region", sorted(suppliers["REGION"].unique().tolist()))
-sel_segments = st.sidebar.multiselect("Customer Segment", sorted(customers["SEGMENT"].unique().tolist()))
+sel_regions = st.sidebar.multiselect("Supplier Region", safe_multiselect_options(suppliers["REGION"]))
+sel_segments = st.sidebar.multiselect("Customer Segment", safe_multiselect_options(customers["SEGMENT"]))
 
 if sel_regions:
     suppliers = suppliers[suppliers["REGION"].isin(sel_regions)]
@@ -128,5 +129,15 @@ fig.update_layout(
 render_chart(fig, "network", "Supplier \u2192 Plant \u2192 Customer network",
              subtitle=f"Showing top {max_suppliers} suppliers and {max_customers} customers. Use sidebar filters to focus on specific regions or segments.",
              legend="none")
+
+# Legend card
+st.markdown(
+    f'<div style="display:flex; gap:24px; justify-content:center; padding:8px 0 16px 0; font-size:13px;">'
+    f'<span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:{SERIES[0]}; margin-right:6px; vertical-align:middle;"></span>Suppliers ({len(suppliers)})</span>'
+    f'<span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:{SERIES[1]}; margin-right:6px; vertical-align:middle;"></span>Plants ({len(plants)})</span>'
+    f'<span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:{SERIES[2]}; margin-right:6px; vertical-align:middle;"></span>Customers ({len(customers)})</span>'
+    f'</div>',
+    unsafe_allow_html=True,
+)
 
 footer()

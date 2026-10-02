@@ -2,9 +2,11 @@ import streamlit as st
 import pandas as pd
 from utils.db import run_query
 from utils.theme import T
-from utils.components import page_header, section, kpi_card, kpi_grid, insight, footer
+from utils.components import page_header, section, kpi_card, kpi_grid, insight, footer, enhanced_table, render_lineage_flow
+from utils.tour import render_tour_banner
 
 page_header("Business Glossary", "Governed metric definitions from the ontology metric registry")
+render_tour_banner()
 
 st.markdown(
     insight(
@@ -36,9 +38,9 @@ owner_count = df["OWNER_TEAM"].nunique()
 
 section("Summary")
 kpi_grid([
-    kpi_card("Total Metrics", str(total_count)),
-    kpi_card("Canonical Definitions", str(canonical_count)),
-    kpi_card("Owner Teams", str(owner_count)),
+    kpi_card("Total Metrics", str(total_count), icon_name="book"),
+    kpi_card("Canonical Definitions", str(canonical_count), icon_name="shield"),
+    kpi_card("Owner Teams", str(owner_count), icon_name="users"),
 ])
 
 section("Metric Definitions")
@@ -46,14 +48,14 @@ display = df.copy()
 display["CANONICAL"] = display["IS_CANONICAL"].map({True: "Yes", False: ""})
 display["DIRECTION"] = display["DIRECTION"].str.replace("_", " ").str.title()
 
-st.dataframe(
+enhanced_table(
     display[["METRIC_ID", "METRIC_NAME", "METRIC_VARIANT", "OWNER_TEAM",
              "UNIT", "DIRECTION", "CANONICAL", "DESCRIPTION"]].rename(columns={
         "METRIC_ID": "ID", "METRIC_NAME": "Metric", "METRIC_VARIANT": "Variant",
         "OWNER_TEAM": "Owner", "UNIT": "Unit", "DIRECTION": "Direction",
         "CANONICAL": "Canonical", "DESCRIPTION": "Description",
     }),
-    use_container_width=True, hide_index=True, height=320,
+    key="glossary_metrics", height=320,
 )
 
 section("Metric Details")
