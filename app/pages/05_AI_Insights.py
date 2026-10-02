@@ -1,12 +1,10 @@
 import streamlit as st
 import pandas as pd
 from utils.db import run_query as run, safe_float
-from utils.theme import inject_css, hero, insight, section, DANGER, WARNING, SUCCESS
+from utils.theme import T
+from utils.components import page_header, section, insight, footer
 
-st.set_page_config(page_title="AI Insights", layout="wide", page_icon="🔗")
-inject_css()
-
-hero("AI INSIGHTS CENTER", "Automatically generated insights from governed supply chain data")
+page_header("AI Insights", "Automatically generated insights from governed supply chain data")
 
 # -- pull data -----------------------------------------------------------------
 erp_otif = safe_float(run(
@@ -100,7 +98,7 @@ all_insights.append(("OTIF Insights", insight(
     f"ERP OTIF at {erp_otif:.1f}% — {'Below' if erp_otif < 50 else 'Above'} Industry Average",
     f"The canonical ERP OTIF of {erp_otif:.1f}% measures delivery against the ERP promised date. "
     f"{'This is significantly below the industry benchmark of ~85%.' if erp_otif < 85 else 'This meets typical industry benchmarks.'}",
-    "critical" if erp_otif < 30 else ("warning" if erp_otif < 70 else "success"),
+    "danger" if erp_otif < 30 else ("warning" if erp_otif < 70 else "success"),
 )))
 
 all_insights.append(("OTIF Insights", insight(
@@ -117,7 +115,7 @@ all_insights.append(("Risk Insights", insight(
     f"${rev_risk/1e6:.1f}M Revenue At Risk ({risk_pct:.1f}%)",
     f"Of ${total_rev/1e6:.1f}M total order value, <b>${rev_risk/1e6:.1f}M</b> is at risk. "
     f"<b>{dominant}</b> are the primary driver.",
-    "critical" if risk_pct > 70 else "danger",
+    "danger" if risk_pct > 70 else "danger",
 )))
 
 all_insights.append(("Risk Insights", insight(
@@ -158,7 +156,7 @@ all_insights.append(("Supplier Insights", insight(
 all_insights.append(("Lead Time Insights", insight(
     f"Average Lead Time: {lead_time:.1f} days",
     f"Overall weighted average lead time is {lead_time:.1f} days from order placement to delivery.",
-    "healthy" if lead_time < 15 else "warning",
+    "success" if lead_time < 15 else "warning",
 )))
 
 if not lt_by_region.empty:
@@ -176,7 +174,7 @@ all_insights.append(("Governance Insights", insight(
     f"Conflict Rate: {conflict_rate:.1f}%",
     f"<b>{conflict_rate:.0f}% of shipments</b> get a different on-time verdict depending on the definition used. "
     f"{'This exceeds the 50% governance threshold — immediate action required.' if conflict_rate > 50 else 'Monitor closely.'}",
-    "critical" if conflict_rate > 50 else "warning",
+    "danger" if conflict_rate > 50 else "warning",
 )))
 
 all_insights.append(("Governance Insights", insight(
@@ -208,3 +206,5 @@ for cat, html in filtered:
         section(cat)
         current_cat = cat
     st.markdown(html, unsafe_allow_html=True)
+
+footer()

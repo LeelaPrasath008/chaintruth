@@ -2,12 +2,11 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 from utils.db import run_query as run, safe_float
-from utils.theme import inject_css, hero, kpi_card, insight, section, DANGER, WARNING, SUCCESS, PRIMARY
+from utils.theme import T
+from utils.components import page_header, kpi_card, kpi_grid, section, insight, insight_panel, footer
+from utils.charts import apply_light, SERIES
 
-st.set_page_config(page_title="Executive Summary", layout="wide", page_icon="🔗")
-inject_css()
-
-hero("EXECUTIVE SUMMARY", "One-minute overview for leadership — problem, status, action")
+page_header("Executive Summary", "One-minute overview for leadership")
 
 # -- pull all key metrics in one pass ------------------------------------------
 erp_otif = safe_float(run(
@@ -69,13 +68,14 @@ log_otif = safe_float(run(
     "FROM CHAINTRUTH_DB.ANALYTICS.LOGISTICS_OTIF"
 )["V"].iloc[0])
 
-c1, c2, c3 = st.columns(3)
-with c1:
-    st.markdown(kpi_card("📋", f"{erp_otif:.1f}%", "Finance says OTIF is", "critical" if erp_otif < 30 else "warning"), unsafe_allow_html=True)
-with c2:
-    st.markdown(kpi_card("🚛", f"{log_otif:.1f}%", "Logistics says OTIF is", "warning"), unsafe_allow_html=True)
-with c3:
-    st.markdown(kpi_card("🏭", f"{sup_otif:.1f}%", "Procurement says OTIF is", "healthy" if sup_otif > 50 else "warning"), unsafe_allow_html=True)
+kpi_grid([
+    kpi_card("Finance (ERP) OTIF", f"{erp_otif:.1f}%",
+             status="critical" if erp_otif < 30 else "warning", icon_name="chart"),
+    kpi_card("Logistics OTIF", f"{log_otif:.1f}%",
+             status="warning", icon_name="chart"),
+    kpi_card("Supplier OTIF", f"{sup_otif:.1f}%",
+             status="healthy" if sup_otif > 50 else "warning", icon_name="chart"),
+])
 
 st.markdown(f"> **{spread:.1f} percentage-point spread** between the highest and lowest OTIF — from the same data.")
 
@@ -97,64 +97,62 @@ rel_count = int(safe_float(run(
     "SELECT COUNT(*) AS V FROM CHAINTRUTH_DB.ONTOLOGY.RELATIONSHIP_TYPE"
 )["V"].iloc[0]))
 
-g1, g2, g3, g4 = st.columns(4)
-with g1:
-    st.markdown(kpi_card("📐", str(metrics_count), "Governed Metrics", "healthy"), unsafe_allow_html=True)
-with g2:
-    st.markdown(kpi_card("✅", str(canonical_count), "Canonical Definitions", "healthy"), unsafe_allow_html=True)
-with g3:
-    st.markdown(kpi_card("🔷", str(entity_count), "Entity Types", "healthy"), unsafe_allow_html=True)
-with g4:
-    st.markdown(kpi_card("🔗", str(rel_count), "Relationships", "healthy"), unsafe_allow_html=True)
+kpi_grid([
+    kpi_card("Governed Metrics", str(metrics_count), status="healthy", icon_name="chart"),
+    kpi_card("Canonical Definitions", str(canonical_count), status="healthy", icon_name="check"),
+    kpi_card("Entity Types", str(entity_count), status="healthy", icon_name="graph"),
+    kpi_card("Relationships", str(rel_count), status="healthy", icon_name="link"),
+])
 
 # =============================================================================
 # 3 — RISK STATUS
 # =============================================================================
 section("Risk Status")
 
-r1, r2, r3, r4 = st.columns(4)
-with r1:
-    st.markdown(kpi_card("💰", f"${rev_risk/1e6:.1f}M", "Revenue At Risk", "critical" if risk_pct > 70 else "warning"), unsafe_allow_html=True)
-with r2:
-    st.markdown(kpi_card("⚡", f"{conflict_rate:.1f}%", "Conflict Rate", "critical" if conflict_rate > 50 else "warning"), unsafe_allow_html=True)
-with r3:
-    st.markdown(kpi_card("📦", f"{fill_rate:.1f}%", "Fill Rate", "healthy" if fill_rate > 95 else "warning"), unsafe_allow_html=True)
-with r4:
-    st.markdown(kpi_card("🕐", f"{lead_time:.1f}d", "Avg Lead Time", "healthy" if lead_time < 15 else "warning"), unsafe_allow_html=True)
+kpi_grid([
+    kpi_card("Revenue At Risk", f"${rev_risk/1e6:.1f}M",
+             status="critical" if risk_pct > 70 else "warning", icon_name="dollar"),
+    kpi_card("Conflict Rate", f"{conflict_rate:.1f}%",
+             status="critical" if conflict_rate > 50 else "warning", icon_name="alert"),
+    kpi_card("Fill Rate", f"{fill_rate:.1f}%",
+             status="healthy" if fill_rate > 95 else "warning", icon_name="box"),
+    kpi_card("Avg Lead Time", f"{lead_time:.1f}d",
+             status="healthy" if lead_time < 15 else "warning", icon_name="clock"),
+])
 
 # =============================================================================
 # 4 — TOP INSIGHTS
 # =============================================================================
 section("Key Insights")
 
-insights_html = ""
-insights_html += insight(
+items = []
+items.append(insight(
     "Definition Conflict is the #1 Governance Risk",
     f"{conflict_rate:.0f}% of shipments get a different on-time verdict depending on which team you ask. "
     f"This creates confusion in executive reporting and undermines trust in supply chain KPIs.",
     "danger",
-)
+))
 
 worst_sup = run(
     "SELECT SUPPLIER_NAME, SUM(REVENUE_AT_RISK) AS RAR "
     "FROM CHAINTRUTH_DB.ANALYTICS.REVENUE_AT_RISK_ANALYTICS "
     "GROUP BY SUPPLIER_NAME ORDER BY RAR DESC LIMIT 1"
 ).iloc[0]
-insights_html += insight(
+items.append(insight(
     f"Highest Exposure: {worst_sup['SUPPLIER_NAME']}",
     f"This supplier contributes <b>${safe_float(worst_sup['RAR'])/1e6:.2f}M</b> in revenue at risk — "
     f"driven primarily by late deliveries against the ERP promised date.",
     "warning",
-)
+))
 
-insights_html += insight(
+items.append(insight(
     "Fill Rate is Not the Problem",
     f"At {fill_rate:.1f}%, inventory fulfillment is healthy. "
     f"The risk is in <b>timing</b> (late delivery), not <b>stock</b> (quantity shortfalls).",
     "success",
-)
+))
 
-st.markdown(insights_html, unsafe_allow_html=True)
+insight_panel(items)
 
 # =============================================================================
 # 5 — RECOMMENDATIONS
@@ -163,19 +161,12 @@ section("Recommendations")
 
 st.markdown("""
 | Priority | Action | Expected Impact |
-|:--------:|--------|-----------------|
-| 🔴 | **Adopt ERP OTIF as canonical** — align all teams to one definition | Eliminates conflicting reports |
-| 🔴 | **Investigate top-5 at-risk suppliers** — review commitment dates and carrier selection | Reduce revenue exposure by 20-30% |
-| 🟡 | **Tighten supplier commitment dates** — close the gap between supplier and ERP definitions | Reduce OTIF spread and conflict rate |
-| 🟡 | **Add governance SLAs** — set thresholds for conflict rate and risk percentage | Automated alerting when governance degrades |
-| 🟢 | **Extend ontology** — add cost, quality, and sustainability metrics | Broader governed decision-making |
+|:--------:|--------|-----------------:|
+| High | **Adopt ERP OTIF as canonical** — align all teams to one definition | Eliminates conflicting reports |
+| High | **Investigate top-5 at-risk suppliers** — review commitment dates and carrier selection | Reduce revenue exposure by 20-30% |
+| Medium | **Tighten supplier commitment dates** — close the gap between supplier and ERP definitions | Reduce OTIF spread and conflict rate |
+| Medium | **Add governance SLAs** — set thresholds for conflict rate and risk percentage | Automated alerting when governance degrades |
+| Low | **Extend ontology** — add cost, quality, and sustainability metrics | Broader governed decision-making |
 """)
 
-# -- footer
-st.markdown("---")
-st.markdown(
-    '<div style="text-align:center; color:#94A3B8; font-size:0.8rem;">'
-    'ChainTruth Executive Summary &mdash; Auto-generated from governed analytics views'
-    '</div>',
-    unsafe_allow_html=True,
-)
+footer()

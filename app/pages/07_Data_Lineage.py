@@ -1,11 +1,9 @@
 import streamlit as st
 from utils.db import run_query as run, safe_float
-from utils.theme import inject_css, hero, section
+from utils.theme import T
+from utils.components import page_header, section, footer
 
-st.set_page_config(page_title="Data Lineage", layout="wide", page_icon="🔗")
-inject_css()
-
-hero("DATA LINEAGE EXPLORER", "Trace data from raw ingestion through ontology governance to analytics and dashboard")
+page_header("Data Lineage", "Trace data from raw ingestion through ontology governance to analytics")
 
 # =============================================================================
 # LINEAGE DIAGRAM
@@ -37,7 +35,7 @@ st.markdown("""
 # =============================================================================
 # RAW LAYER
 # =============================================================================
-section("Bronze Layer — RAW Tables")
+section("Bronze Layer -- RAW Tables")
 st.caption("Source-of-truth tables loaded from synthetic data generation")
 
 raw_tables = run(
@@ -48,22 +46,11 @@ raw_tables = run(
 )
 
 cols = st.columns(3)
-table_info = {
-    "CUSTOMERS": ("👤", "Customer master data with segments (Enterprise, Mid-Market, SMB, Government, Startup)"),
-    "ORDERS": ("📋", "5000 orders with three date fields: PROMISED_DELIVERY_DATE, SUPPLIER_COMMITMENT_DATE, and ORDER_DATE"),
-    "PARTS": ("⚙️", "200 parts across 5 categories (Electronics, Mechanical, Chemical, Raw Material, Packaging)"),
-    "PLANTS": ("🏭", "10 manufacturing plants across 5 global regions"),
-    "SHIPMENTS": ("🚛", "~5031 shipments including split shipments for complex orders"),
-    "SUPPLIERS": ("🏢", "50 suppliers with reliability scores (0.5-0.95) across global regions"),
-}
-
 for i, (_, row) in enumerate(raw_tables.iterrows()):
     name = row["TABLE_NAME"]
-    icon, desc = table_info.get(name, ("📊", ""))
     rows = int(safe_float(row["ROW_COUNT"]))
     with cols[i % 3]:
-        with st.expander(f"{icon} {name} ({rows:,} rows)"):
-            st.markdown(desc)
+        with st.expander(f"{name} ({rows:,} rows)"):
             cols_df = run(
                 f"SELECT COLUMN_NAME, DATA_TYPE "
                 f"FROM CHAINTRUTH_DB.INFORMATION_SCHEMA.COLUMNS "
@@ -76,26 +63,26 @@ for i, (_, row) in enumerate(raw_tables.iterrows()):
 # ONTOLOGY LAYER
 # =============================================================================
 st.markdown("---")
-section("Silver Layer — ONTOLOGY Tables")
+section("Silver Layer -- ONTOLOGY Tables")
 st.caption("Governance layer defining entities, relationships, and metric definitions")
 
 ont_col1, ont_col2, ont_col3 = st.columns(3)
 
 with ont_col1:
     entities = run("SELECT ENTITY_NAME, DESCRIPTION, SOURCE_TABLE FROM CHAINTRUTH_DB.ONTOLOGY.ENTITY_TYPE")
-    with st.expander(f"🔷 ENTITY_TYPE ({len(entities)} records)"):
+    with st.expander(f"ENTITY_TYPE ({len(entities)} records)"):
         st.markdown("Defines the core supply chain objects tracked by the platform.")
         st.dataframe(entities, hide_index=True, use_container_width=True)
 
 with ont_col2:
     rels = run("SELECT RELATIONSHIP_NAME, FROM_ENTITY_TYPE_ID, TO_ENTITY_TYPE_ID, CARDINALITY FROM CHAINTRUTH_DB.ONTOLOGY.RELATIONSHIP_TYPE")
-    with st.expander(f"🔗 RELATIONSHIP_TYPE ({len(rels)} records)"):
+    with st.expander(f"RELATIONSHIP_TYPE ({len(rels)} records)"):
         st.markdown("Directed edges connecting entities in the supply chain graph.")
         st.dataframe(rels, hide_index=True, use_container_width=True)
 
 with ont_col3:
     metrics = run("SELECT METRIC_NAME, METRIC_VARIANT, OWNER_TEAM, IS_CANONICAL FROM CHAINTRUTH_DB.ONTOLOGY.METRIC_REGISTRY")
-    with st.expander(f"📐 METRIC_REGISTRY ({len(metrics)} records)"):
+    with st.expander(f"METRIC_REGISTRY ({len(metrics)} records)"):
         st.markdown("Governed metric definitions with canonical flagging.")
         st.dataframe(metrics, hide_index=True, use_container_width=True)
 
@@ -103,7 +90,7 @@ with ont_col3:
 # ANALYTICS LAYER
 # =============================================================================
 st.markdown("---")
-section("Gold Layer — ANALYTICS Views")
+section("Gold Layer -- ANALYTICS Views")
 st.caption("Pre-computed analytics views consumed by the dashboard")
 
 view_info = [
@@ -117,7 +104,7 @@ view_info = [
 ]
 
 for name, desc, sources, note in view_info:
-    with st.expander(f"📊 ANALYTICS.{name}"):
+    with st.expander(f"ANALYTICS.{name}"):
         st.markdown(f"**Description:** {desc}")
         st.markdown(f"**Source Tables:** {sources}")
         st.markdown(f"**Note:** {note}")
@@ -141,3 +128,5 @@ st.markdown("""
 | **Lead Time** | `ORDERS.ORDER_DATE` → `SHIPMENTS.ACTUAL_DELIVERY_DATE` → `LEAD_TIME_ANALYTICS` | Month × Supplier × Plant × Segment |
 | **Fill Rate** | `ORDERS.QUANTITY` → `SHIPMENTS.QUANTITY_SHIPPED` → `FILL_RATE_ANALYTICS` | Month × Supplier × Plant × Segment |
 """)
+
+footer()

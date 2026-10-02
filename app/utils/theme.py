@@ -1,216 +1,298 @@
+"""ChainTruth design tokens and global CSS.
+
+Every visual constant lives here.  Pages call ``apply_theme()`` once at the
+top; nothing else injects ``<style>`` blocks.
+"""
+
 import streamlit as st
 
-# -- color palette (enterprise dark) ------------------------------------------
-BG = "#0E1117"
-CARD = "#161B22"
-CARD_BORDER = "#30363D"
-PRIMARY = "#00D4AA"
-SECONDARY = "#4C8BF5"
-WARNING = "#FFB347"
-DANGER = "#FF5C5C"
-SUCCESS = "#00D4AA"
-TEXT = "#FFFFFF"
-TEXT_MUTED = "#8B949E"
-SURFACE = "#21262D"
-
-CHART_COLORS = {
-    "ERP": DANGER,
-    "Logistics": WARNING,
-    "Supplier": SUCCESS,
-    "primary": PRIMARY,
-    "Late Delivery": DANGER,
-    "Short Shipped": WARNING,
-    "Overdue Open": SECONDARY,
-}
-
-# -- shared Plotly layout for dark mode ----------------------------------------
-PLOTLY_LAYOUT = dict(
-    paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor=CARD,
-    font_color=TEXT,
-    title_font_color=TEXT,
-    legend_font_color=TEXT_MUTED,
-    xaxis=dict(gridcolor="#30363D", zerolinecolor="#30363D"),
-    yaxis=dict(gridcolor="#30363D", zerolinecolor="#30363D"),
-    margin=dict(l=40, r=20, t=50, b=40),
+# ---------------------------------------------------------------------------
+# Tokens
+# ---------------------------------------------------------------------------
+T = dict(
+    bg="#F4F6F9",
+    surface="#FFFFFF",
+    border="#DDE3EA",
+    text="#1B2733",
+    text_muted="#5B6B7B",
+    primary="#0B6BCB",
+    primary_hover="#095AAE",
+    accent="#29B5E8",
+    sidebar_bg="#0F2A43",
+    sidebar_text="#E6EDF5",
+    sidebar_muted="#A9B8C9",
+    sidebar_active_bg="#1B4468",
+    success="#17794C",
+    success_tint="#E6F4EC",
+    warning="#8A5A00",
+    warning_tint="#FFF4DB",
+    danger="#B3202F",
+    danger_tint="#FBE8EA",
+    series=["#2F6FB5", "#2A9D8F", "#C77700", "#7A5FB3", "#D1495B", "#6B7C93"],
+    grid="#E6EBF1",
+    radius="8px",
+    shadow="0 1px 2px rgba(15,42,67,.06)",
+    font='"Segoe UI",-apple-system,"Helvetica Neue",Arial,sans-serif',
 )
 
-
-def apply_dark(fig, height=380):
-    fig.update_layout(**PLOTLY_LAYOUT, height=height)
-    return fig
-
-
-# -- CSS injection -------------------------------------------------------------
-def inject_css():
-    st.markdown("""
-    <style>
-        /* --- global --- */
-        .main .block-container { padding-top: 0.8rem; max-width: 1280px; }
-        section[data-testid="stSidebar"] { background-color: #0D1117; border-right: 1px solid #21262D; }
-        section[data-testid="stSidebar"] .stMarkdown p,
-        section[data-testid="stSidebar"] .stMarkdown span,
-        section[data-testid="stSidebar"] label { color: #C9D1D9 !important; }
-
-        /* --- hero banner --- */
-        .hero-banner {
-            background: linear-gradient(135deg, #0D1B2A 0%, #1B2838 50%, #0D1117 100%);
-            border: 1px solid #00D4AA33;
-            border-radius: 14px; padding: 2.2rem 2.5rem; margin-bottom: 1.5rem;
-            position: relative; overflow: hidden;
-        }
-        .hero-banner::before {
-            content: ''; position: absolute; top: -50%; right: -20%;
-            width: 400px; height: 400px; border-radius: 50%;
-            background: radial-gradient(circle, #00D4AA15 0%, transparent 70%);
-        }
-        .hero-banner h1 {
-            color: #00D4AA; margin: 0 0 0.3rem 0; font-size: 2.2rem;
-            font-weight: 800; letter-spacing: -0.5px;
-        }
-        .hero-banner p { color: #8B949E; margin: 0; font-size: 1rem; }
-        .hero-badge {
-            display: inline-block; background: #00D4AA22; color: #00D4AA;
-            padding: 3px 12px; border-radius: 20px; font-size: 0.72rem;
-            font-weight: 600; letter-spacing: 0.5px; margin-bottom: 0.6rem;
-        }
-
-        /* --- KPI cards --- */
-        .kpi-card {
-            background: #161B22; border: 1px solid #30363D;
-            border-radius: 12px; padding: 1.3rem 1rem;
-            text-align: center; transition: all 0.25s ease;
-        }
-        .kpi-card:hover { border-color: #00D4AA55; box-shadow: 0 0 20px #00D4AA15; transform: translateY(-2px); }
-        .kpi-icon { font-size: 1.6rem; margin-bottom: 0.3rem; }
-        .kpi-value { font-size: 1.9rem; font-weight: 800; color: #FFFFFF; margin: 0.15rem 0; letter-spacing: -0.5px; }
-        .kpi-label { font-size: 0.75rem; color: #8B949E; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
-        .kpi-status {
-            font-size: 0.7rem; font-weight: 700; padding: 2px 10px;
-            border-radius: 20px; display: inline-block; margin-top: 0.5rem;
-        }
-        .status-healthy { background: #00D4AA22; color: #00D4AA; }
-        .status-warning { background: #FFB34722; color: #FFB347; }
-        .status-critical { background: #FF5C5C22; color: #FF5C5C; }
-
-        /* --- insight cards --- */
-        .insight-card {
-            background: #161B22; border-left: 3px solid #4C8BF5; border-radius: 10px;
-            padding: 1rem 1.3rem; margin-bottom: 0.65rem;
-            border: 1px solid #30363D; border-left-width: 3px;
-        }
-        .insight-card.danger { border-left-color: #FF5C5C; }
-        .insight-card.warning { border-left-color: #FFB347; }
-        .insight-card.success { border-left-color: #00D4AA; }
-        .insight-card.critical { border-left-color: #FF5C5C; }
-        .insight-title { font-weight: 700; font-size: 0.92rem; color: #E6EDF3; margin-bottom: 0.25rem; }
-        .insight-body { font-size: 0.85rem; color: #8B949E; line-height: 1.5; }
-        .insight-body b { color: #E6EDF3; }
-
-        /* --- section headers --- */
-        .section-header {
-            font-size: 1rem; font-weight: 700; color: #E6EDF3;
-            padding-bottom: 0.5rem; margin: 1.5rem 0 1rem 0;
-            border-bottom: 1px solid #21262D;
-            display: flex; align-items: center; gap: 0.5rem;
-        }
-        .section-dot { width: 8px; height: 8px; border-radius: 50%; background: #00D4AA; display: inline-block; }
-
-        /* --- alert styles --- */
-        .alert-critical { background: #FF5C5C12; border: 1px solid #FF5C5C44; border-left: 3px solid #FF5C5C; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 0.5rem; }
-        .alert-warning  { background: #FFB34712; border: 1px solid #FFB34744; border-left: 3px solid #FFB347; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 0.5rem; }
-        .alert-info     { background: #4C8BF512; border: 1px solid #4C8BF544; border-left: 3px solid #4C8BF5; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 0.5rem; }
-        .alert-critical strong, .alert-warning strong, .alert-info strong { color: #E6EDF3; }
-        .alert-critical span, .alert-warning span, .alert-info span { color: #8B949E; font-size: 0.88rem; }
-
-        /* --- story card --- */
-        .story-card {
-            background: #161B22; border: 1px solid #30363D; border-radius: 12px;
-            padding: 1.5rem; margin-bottom: 1rem;
-        }
-        .story-card h3 { color: #00D4AA; margin-top: 0; }
-        .story-card p { color: #8B949E; }
-        .story-card b { color: #E6EDF3; }
-
-        /* --- sidebar branding --- */
-        .sidebar-brand {
-            text-align: center; padding: 0.8rem 0 1rem 0;
-            border-bottom: 1px solid #21262D; margin-bottom: 1rem;
-        }
-        .sidebar-brand h2 { color: #00D4AA; margin: 0; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.3px; }
-        .sidebar-brand p { color: #484F58; font-size: 0.7rem; margin: 0.2rem 0 0 0; letter-spacing: 0.3px; }
-
-        /* --- metric widget overrides --- */
-        [data-testid="stMetric"] { background: #161B22; border: 1px solid #30363D; border-radius: 10px; padding: 0.8rem 1rem; }
-        [data-testid="stMetricLabel"] p { color: #8B949E !important; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        [data-testid="stMetricValue"] { color: #E6EDF3 !important; font-weight: 700; }
-
-        /* --- footer --- */
-        .ct-footer { text-align: center; color: #484F58; font-size: 0.72rem; padding: 1.5rem 0 0.5rem 0; border-top: 1px solid #21262D; margin-top: 2rem; }
-    </style>
-    """, unsafe_allow_html=True)
+# Convenience aliases used by page code
+PRIMARY = T["primary"]
+DANGER = T["danger"]
+WARNING = T["warning"]
+SUCCESS = T["success"]
 
 
-# -- component helpers ---------------------------------------------------------
-
-def sidebar_brand():
-    st.sidebar.markdown(
-        '<div class="sidebar-brand">'
-        '<h2>ChainTruth</h2>'
-        '<p>SUPPLY CHAIN GOVERNANCE PLATFORM</p>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
+def apply_theme():
+    """Inject the single global CSS block.  Call once per page run."""
+    st.markdown(_CSS, unsafe_allow_html=True)
 
 
-def hero(title: str, subtitle: str):
-    st.markdown(
-        f'<div class="hero-banner">'
-        f'<div class="hero-badge">CHAINTRUTH PLATFORM</div>'
-        f'<h1>{title}</h1><p>{subtitle}</p></div>',
-        unsafe_allow_html=True,
-    )
+# ---------------------------------------------------------------------------
+# CSS — single block, explicit colors, no inheritance assumptions
+# ---------------------------------------------------------------------------
+_CSS = f"""<style>
+/* ---- base ---- */
+html, body, [data-testid="stAppViewContainer"],
+[data-testid="stApp"] {{
+    background-color: {T["bg"]} !important;
+    color: {T["text"]} !important;
+    font-family: {T["font"]};
+}}
+.main .block-container {{
+    padding: 2.5rem 2rem 2rem 2rem;
+    max-width: 1280px;
+}}
+h1,h2,h3,h4,h5,h6 {{ color: {T["text"]} !important; }}
+p, li, span, label {{ color: {T["text"]}; }}
 
+/* ---- sidebar (navy) ---- */
+section[data-testid="stSidebar"] {{
+    background-color: {T["sidebar_bg"]} !important;
+    border-right: none !important;
+}}
+section[data-testid="stSidebar"] * {{
+    color: {T["sidebar_text"]} !important;
+}}
+section[data-testid="stSidebar"] [data-testid="stSidebarNavSeparator"] span {{
+    color: {T["sidebar_muted"]} !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: .5px !important;
+    text-transform: uppercase !important;
+}}
+section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"] {{
+    border-radius: 6px;
+    margin: 1px 8px;
+    padding: 6px 12px;
+    transition: background .15s;
+}}
+section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"]:hover {{
+    background: rgba(255,255,255,.08);
+}}
+section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"][aria-current="page"] {{
+    background: {T["sidebar_active_bg"]} !important;
+    border-left: 3px solid {T["accent"]};
+}}
+section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"][aria-current="page"] span {{
+    color: #FFFFFF !important;
+    font-weight: 600;
+}}
+/* brand block */
+.ct-sidebar-brand {{
+    text-align: left; padding: 16px 20px 12px 20px;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    margin-bottom: 8px;
+}}
+.ct-sidebar-brand .ct-logo {{
+    font-size: 18px; font-weight: 700; color: #FFFFFF !important;
+    letter-spacing: -.3px;
+}}
+.ct-sidebar-brand .ct-logo span {{ color: {T["accent"]}; }}
+.ct-sidebar-brand .ct-env {{
+    display: inline-block; margin-top: 4px;
+    font-size: 10px; font-weight: 600; letter-spacing: .4px;
+    padding: 2px 8px; border-radius: 4px;
+    background: rgba(255,255,255,.1); color: {T["sidebar_muted"]} !important;
+}}
 
-def kpi_card(icon: str, value: str, label: str, status: str = ""):
-    status_html = ""
-    if status == "healthy":
-        status_html = '<div class="kpi-status status-healthy">HEALTHY</div>'
-    elif status == "warning":
-        status_html = '<div class="kpi-status status-warning">WARNING</div>'
-    elif status == "critical":
-        status_html = '<div class="kpi-status status-critical">CRITICAL</div>'
-    return (
-        f'<div class="kpi-card">'
-        f'<div class="kpi-icon">{icon}</div>'
-        f'<div class="kpi-value">{value}</div>'
-        f'<div class="kpi-label">{label}</div>'
-        f'{status_html}'
-        f'</div>'
-    )
+/* ---- page header ---- */
+.ct-page-header {{
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding-bottom: 12px; margin-bottom: 20px;
+    border-bottom: 1px solid {T["border"]};
+}}
+.ct-page-header .ct-ph-left h1 {{
+    font-size: 24px; font-weight: 600; line-height: 32px;
+    margin: 0 0 2px 0; color: {T["text"]} !important;
+}}
+.ct-page-header .ct-ph-left p {{
+    font-size: 14px; color: {T["text_muted"]}; margin: 0;
+}}
+.ct-page-header .ct-ph-right {{
+    font-size: 12px; color: {T["text_muted"]}; text-align: right;
+    white-space: nowrap;
+}}
 
+/* ---- KPI grid ---- */
+.ct-kpi-grid {{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin-bottom: 24px;
+}}
+.ct-kpi {{
+    background: {T["surface"]}; border: 1px solid {T["border"]};
+    border-radius: {T["radius"]}; padding: 12px 16px;
+    box-shadow: {T["shadow"]}; min-height: 88px;
+    display: flex; flex-direction: column; justify-content: center;
+}}
+.ct-kpi-top {{
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 4px;
+}}
+.ct-kpi-label {{
+    font-size: 12px; line-height: 16px; font-weight: 600;
+    color: {T["text_muted"]}; text-transform: none;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    max-width: 70%;
+}}
+.ct-kpi-value {{
+    font-size: 28px; line-height: 32px; font-weight: 600;
+    color: {T["text"]}; white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}}
+.ct-kpi-caption {{
+    font-size: 11px; color: {T["text_muted"]}; margin-top: 4px;
+}}
 
-def insight(title: str, body: str, level: str = ""):
-    cls = f"insight-card {level}" if level else "insight-card"
-    return (
-        f'<div class="{cls}">'
-        f'<div class="insight-title">{title}</div>'
-        f'<div class="insight-body">{body}</div>'
-        f'</div>'
-    )
+/* ---- status chips ---- */
+.ct-chip {{
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 600; padding: 2px 8px;
+    border-radius: 4px; white-space: nowrap;
+}}
+.ct-chip svg {{ width: 12px; height: 12px; flex-shrink: 0; }}
+.ct-chip-success {{ background: {T["success_tint"]}; color: {T["success"]}; }}
+.ct-chip-warning {{ background: {T["warning_tint"]}; color: {T["warning"]}; }}
+.ct-chip-danger  {{ background: {T["danger_tint"]};  color: {T["danger"]};  }}
+.ct-chip-neutral {{ background: #EEF1F5; color: {T["text_muted"]}; }}
 
+/* ---- section header ---- */
+.ct-section {{
+    font-size: 16px; line-height: 24px; font-weight: 600;
+    color: {T["text"]}; padding-bottom: 8px; margin: 28px 0 16px 0;
+    border-bottom: 1px solid {T["border"]};
+}}
 
-def section(title: str):
-    st.markdown(
-        f'<div class="section-header"><span class="section-dot"></span>{title}</div>',
-        unsafe_allow_html=True,
-    )
+/* ---- insight panel ---- */
+.ct-insight {{
+    background: {T["surface"]}; border: 1px solid {T["border"]};
+    border-left: 3px solid {T["primary"]}; border-radius: {T["radius"]};
+    padding: 12px 16px; margin-bottom: 8px;
+    box-shadow: {T["shadow"]};
+}}
+.ct-insight-danger  {{ border-left-color: {T["danger"]}; }}
+.ct-insight-warning {{ border-left-color: {T["warning"]}; }}
+.ct-insight-success {{ border-left-color: {T["success"]}; }}
+.ct-insight b {{ color: {T["text"]}; }}
+.ct-insight .ct-it {{ font-weight: 600; font-size: 14px; color: {T["text"]}; margin-bottom: 2px; }}
+.ct-insight .ct-ib {{ font-size: 13px; color: {T["text_muted"]}; line-height: 1.5; }}
 
+/* ---- alerts ---- */
+.ct-alert {{
+    border-radius: {T["radius"]}; padding: 12px 16px;
+    margin-bottom: 8px; border-left: 3px solid;
+    font-size: 13px; line-height: 1.5;
+}}
+.ct-alert strong {{ display: block; font-size: 14px; margin-bottom: 2px; }}
+.ct-alert-danger  {{ background: {T["danger_tint"]};  border-left-color: {T["danger"]};  color: {T["text"]}; }}
+.ct-alert-warning {{ background: {T["warning_tint"]}; border-left-color: {T["warning"]}; color: {T["text"]}; }}
+.ct-alert-info    {{ background: #E8F1FB;             border-left-color: {T["primary"]}; color: {T["text"]}; }}
 
-def footer():
-    st.markdown(
-        '<div class="ct-footer">'
-        'ChainTruth &bull; Built with Snowflake &amp; CoCo CLI &bull; Hackathon 2026'
-        '</div>',
-        unsafe_allow_html=True,
-    )
+/* ---- story card (Executive Story) ---- */
+.ct-story {{
+    background: {T["surface"]}; border: 1px solid {T["border"]};
+    border-radius: {T["radius"]}; padding: 20px 24px;
+    margin-bottom: 16px; box-shadow: {T["shadow"]};
+}}
+.ct-story h3 {{ color: {T["text"]}; margin-top: 0; font-size: 18px; }}
+.ct-story p  {{ color: {T["text_muted"]}; font-size: 14px; line-height: 1.6; }}
+.ct-story b  {{ color: {T["text"]}; }}
+
+/* ---- flow steps (lineage / architecture) ---- */
+.ct-flow {{ display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap; margin: 16px 0; }}
+.ct-flow-step {{
+    background: {T["surface"]}; border: 1px solid {T["border"]};
+    border-radius: {T["radius"]}; padding: 10px 16px; text-align: center;
+    min-width: 130px; box-shadow: {T["shadow"]};
+}}
+.ct-flow-step .ct-fs-title {{ font-size: 13px; font-weight: 600; color: {T["text"]}; }}
+.ct-flow-step .ct-fs-desc  {{ font-size: 11px; color: {T["text_muted"]}; }}
+.ct-flow-arrow {{ color: {T["primary"]}; font-size: 18px; font-weight: 700; padding: 0 6px; }}
+
+/* ---- outcome card (Executive Story) ---- */
+.ct-outcome {{
+    background: {T["surface"]}; border: 1px solid {T["border"]};
+    border-radius: {T["radius"]}; padding: 16px; text-align: center;
+    box-shadow: {T["shadow"]}; margin-bottom: 12px;
+}}
+.ct-outcome .ct-oc-title {{ font-size: 14px; font-weight: 600; color: {T["text"]}; }}
+.ct-outcome .ct-oc-desc  {{ font-size: 12px; color: {T["text_muted"]}; margin-top: 4px; }}
+
+/* ---- metric row (ontology) ---- */
+.ct-mrow {{
+    display: flex; gap: 8px; align-items: center;
+    background: {T["surface"]}; border: 1px solid {T["border"]};
+    border-radius: {T["radius"]}; padding: 8px 16px; margin-bottom: 6px;
+}}
+.ct-mrow-name {{ flex: 1; font-size: 14px; font-weight: 600; color: {T["text"]}; }}
+.ct-mrow-owner {{ font-size: 12px; color: {T["text_muted"]}; }}
+
+/* ---- copilot messages ---- */
+.ct-cpmsg {{
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 10px 14px; margin-bottom: 6px;
+    background: {T["surface"]}; border: 1px solid {T["border"]};
+    border-radius: {T["radius"]};
+}}
+.ct-cpmsg .ct-cp-avatar {{
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+}}
+.ct-cpmsg .ct-cp-avatar.user {{ background: #E8F1FB; }}
+.ct-cpmsg .ct-cp-avatar.ai   {{ background: {T["success_tint"]}; }}
+.ct-cpmsg .ct-cp-text {{ font-size: 13px; color: {T["text"]}; line-height: 1.5; }}
+.ct-cpmsg .ct-cp-text b {{ color: {T["text"]}; }}
+
+/* ---- Plotly container overrides ---- */
+[data-testid="stPlotlyChart"] {{ background: transparent !important; }}
+
+/* ---- dataframe / table ---- */
+[data-testid="stDataFrame"] {{ font-size: 13px; }}
+
+/* ---- inputs ---- */
+[data-testid="stMultiSelect"], [data-testid="stSelectbox"],
+[data-testid="stTextInput"] {{
+    font-size: 14px;
+}}
+
+/* ---- hide deploy button ---- */
+.stDeployButton {{ display: none !important; }}
+
+/* ---- reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {{
+    *, *::before, *::after {{ transition: none !important; animation: none !important; }}
+}}
+
+/* ---- focus ---- */
+*:focus-visible {{
+    outline: 2px solid {T["primary"]}; outline-offset: 2px;
+}}
+
+/* ---- footer ---- */
+.ct-footer {{
+    text-align: center; font-size: 12px; color: {T["text_muted"]};
+    padding: 24px 0 8px 0; margin-top: 32px;
+    border-top: 1px solid {T["border"]};
+}}
+</style>"""

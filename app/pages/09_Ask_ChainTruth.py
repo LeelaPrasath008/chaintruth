@@ -2,24 +2,21 @@ import streamlit as st
 import pandas as pd
 import re
 from utils.db import run_query as run, safe_float
-from utils.theme import inject_css, hero, section, sidebar_brand, footer
+from utils.theme import T
+from utils.components import page_header, section, footer
 
-st.set_page_config(page_title="Ask ChainTruth", layout="wide", page_icon="🔗")
-inject_css()
-sidebar_brand()
-
-hero("Ask ChainTruth", "AI-powered supply chain intelligence — grounded in governed analytics views")
+page_header("Ask ChainTruth", "AI-powered supply chain intelligence grounded in governed analytics views")
 
 # -- quick action buttons ------------------------------------------------------
-st.sidebar.markdown("**Quick Actions**")
+st.sidebar.markdown("**Quick actions**")
 SUGGESTIONS = [
-    ("📊 What is OTIF?", "What is OTIF?"),
-    ("🔀 Compare OTIF definitions", "Why are OTIF definitions different?"),
-    ("💰 Top suppliers at risk", "Which suppliers have the highest revenue at risk?"),
-    ("⚡ Explain conflict rate", "What is the conflict rate?"),
-    ("📦 Current fill rate", "What is the fill rate?"),
-    ("🕐 Delivery lead time", "How long does delivery take?"),
-    ("📋 ERP OTIF rate", "What is the current ERP OTIF?"),
+    ("What is OTIF?", "What is OTIF?"),
+    ("Compare OTIF definitions", "Why are OTIF definitions different?"),
+    ("Top suppliers at risk", "Which suppliers have the highest revenue at risk?"),
+    ("Explain conflict rate", "What is the conflict rate?"),
+    ("Current fill rate", "What is the fill rate?"),
+    ("Delivery lead time", "How long does delivery take?"),
+    ("ERP OTIF rate", "What is the current ERP OTIF?"),
 ]
 for label, q in SUGGESTIONS:
     if st.sidebar.button(label, key=f"sq_{q}", use_container_width=True):
@@ -314,16 +311,15 @@ if "messages" not in st.session_state:
     ]
 
 for msg in st.session_state.messages:
-    avatar = "🔗" if msg["role"] == "assistant" else "👤"
-    with st.chat_message(msg["role"], avatar=avatar):
+    with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
 if prompt := (st.session_state.pop("_prefill", None) or st.chat_input("Ask a supply-chain question...")):
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user", avatar="👤"):
+    with st.chat_message("user"):
         st.markdown(prompt)
 
-    with st.chat_message("assistant", avatar="🔗"):
+    with st.chat_message("assistant"):
         with st.spinner("Querying governed analytics views..."):
             intent = detect_intent(prompt)
             handler = HANDLERS.get(intent, handle_unknown)

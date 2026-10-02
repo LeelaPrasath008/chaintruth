@@ -1,26 +1,22 @@
 import streamlit as st
 import pandas as pd
 from utils.db import run_query
+from utils.theme import T
+from utils.components import page_header, section, kpi_card, kpi_grid, insight, footer
 
-st.set_page_config(page_title="Business Glossary", layout="wide")
-st.title("Business Glossary")
-st.caption("Governed metric definitions from ONTOLOGY.METRIC_REGISTRY")
+page_header("Business Glossary", "Governed metric definitions from the ontology metric registry")
 
 st.markdown(
-    "In any supply chain, the same metric can be defined differently by different "
-    "teams. Finance measures OTIF against the ERP promised date. Logistics measures "
-    "against the carrier ETA. Procurement measures against the supplier's own "
-    "commitment. All three are valid within their context, but when reported side "
-    "by side without governance, they create confusion: the same shipment appears "
-    "\"on time\" to one team and \"late\" to another.\n\n"
-    "The **Metric Registry** solves this by recording every definition explicitly "
-    "— its SQL formula, its owner, and whether it is the **canonical** definition "
-    "used for executive reporting and Revenue At Risk calculations. "
-    "When stakeholders disagree on a number, the registry provides a single source "
-    "of truth about *what was measured and by whom*."
+    insight(
+        "Why this matters",
+        "In any supply chain, the same metric can be defined differently by different teams. "
+        "Finance measures OTIF against the ERP promised date. Logistics measures against the carrier ETA. "
+        "Procurement measures against the supplier's own commitment. The <b>Metric Registry</b> records "
+        "every definition explicitly — its SQL formula, its owner, and whether it is the <b>canonical</b> "
+        "definition used for executive reporting.",
+    ),
+    unsafe_allow_html=True,
 )
-
-st.markdown("---")
 
 df = run_query(
     "SELECT METRIC_ID, METRIC_NAME, METRIC_VARIANT, DESCRIPTION, "
@@ -30,26 +26,22 @@ df = run_query(
     "ORDER BY METRIC_NAME, IS_CANONICAL DESC"
 )
 
-# -- ensure IS_CANONICAL is proper bool (Snowflake may return string) ----------
 df["IS_CANONICAL"] = df["IS_CANONICAL"].apply(
     lambda v: bool(v) if isinstance(v, bool) else str(v).lower() == "true"
 )
 
-# -- summary cards -------------------------------------------------------------
 canonical_count = int(df["IS_CANONICAL"].sum())
 total_count = len(df)
 owner_count = df["OWNER_TEAM"].nunique()
 
-c1, c2, c3 = st.columns(3)
-c1.metric("Total Metrics", total_count)
-c2.metric("Canonical Definitions", canonical_count)
-c3.metric("Owner Teams", owner_count)
+section("Summary")
+kpi_grid([
+    kpi_card("Total Metrics", str(total_count)),
+    kpi_card("Canonical Definitions", str(canonical_count)),
+    kpi_card("Owner Teams", str(owner_count)),
+])
 
-st.markdown("---")
-
-# -- metric table --------------------------------------------------------------
-st.subheader("Metric Definitions")
-
+section("Metric Definitions")
 display = df.copy()
 display["CANONICAL"] = display["IS_CANONICAL"].map({True: "Yes", False: ""})
 display["DIRECTION"] = display["DIRECTION"].str.replace("_", " ").str.title()
@@ -57,28 +49,18 @@ display["DIRECTION"] = display["DIRECTION"].str.replace("_", " ").str.title()
 st.dataframe(
     display[["METRIC_ID", "METRIC_NAME", "METRIC_VARIANT", "OWNER_TEAM",
              "UNIT", "DIRECTION", "CANONICAL", "DESCRIPTION"]].rename(columns={
-        "METRIC_ID": "ID",
-        "METRIC_NAME": "Metric",
-        "METRIC_VARIANT": "Variant",
-        "OWNER_TEAM": "Owner",
-        "UNIT": "Unit",
-        "DIRECTION": "Direction",
-        "CANONICAL": "Canonical",
-        "DESCRIPTION": "Description",
+        "METRIC_ID": "ID", "METRIC_NAME": "Metric", "METRIC_VARIANT": "Variant",
+        "OWNER_TEAM": "Owner", "UNIT": "Unit", "DIRECTION": "Direction",
+        "CANONICAL": "Canonical", "DESCRIPTION": "Description",
     }),
-    use_container_width=True,
-    hide_index=True,
-    height=320,
+    use_container_width=True, hide_index=True, height=320,
 )
 
-# -- expandable detail per metric ----------------------------------------------
-st.markdown("---")
-st.subheader("Metric Details")
-
+section("Metric Details")
 for _, row in df.iterrows():
     label = row["METRIC_NAME"]
     if pd.notna(row["METRIC_VARIANT"]) and row["METRIC_VARIANT"]:
-        label += f" — {row['METRIC_VARIANT']}"
+        label += f" -- {row['METRIC_VARIANT']}"
     if row["IS_CANONICAL"]:
         label += "  (Canonical)"
 
@@ -92,3 +74,5 @@ for _, row in df.iterrows():
             f"**Source tables:** `{row['SOURCE_TABLES']}`  \n"
             f"**Source columns:** `{row['SOURCE_COLUMNS']}`"
         )
+
+footer()
