@@ -2,30 +2,32 @@ import streamlit as st
 import pandas as pd
 import re
 from utils.db import run_query as run, safe_float
+from utils.theme import inject_css, hero, section, sidebar_brand, footer
 
-st.set_page_config(page_title="Ask ChainTruth", layout="wide")
-st.title("Ask ChainTruth")
-st.caption("Ask supply-chain questions in plain English. Answers are grounded in governed analytics views.")
+st.set_page_config(page_title="Ask ChainTruth", layout="wide", page_icon="🔗")
+inject_css()
+sidebar_brand()
 
-# -- suggested questions (demo flow) -------------------------------------------
-st.sidebar.header("Suggested Questions")
+hero("Ask ChainTruth", "AI-powered supply chain intelligence — grounded in governed analytics views")
+
+# -- quick action buttons ------------------------------------------------------
+st.sidebar.markdown("**Quick Actions**")
 SUGGESTIONS = [
-    "What is the current ERP OTIF?",
-    "Why are OTIF definitions different?",
-    "Which suppliers have the highest revenue at risk?",
-    "What is the conflict rate?",
-    "What is the fill rate?",
-    "How long does delivery take?",
-    "What is OTIF?",
+    ("📊 What is OTIF?", "What is OTIF?"),
+    ("🔀 Compare OTIF definitions", "Why are OTIF definitions different?"),
+    ("💰 Top suppliers at risk", "Which suppliers have the highest revenue at risk?"),
+    ("⚡ Explain conflict rate", "What is the conflict rate?"),
+    ("📦 Current fill rate", "What is the fill rate?"),
+    ("🕐 Delivery lead time", "How long does delivery take?"),
+    ("📋 ERP OTIF rate", "What is the current ERP OTIF?"),
 ]
-for q in SUGGESTIONS:
-    if st.sidebar.button(q, key=f"sq_{q}", use_container_width=True):
+for label, q in SUGGESTIONS:
+    if st.sidebar.button(label, key=f"sq_{q}", use_container_width=True):
         st.session_state["_prefill"] = q
 
-# -- intent detection ----------------------------------------------------------
+# -- intent detection (UNCHANGED) ---------------------------------------------
 
 INTENTS = [
-    # (name, compiled regex pattern list)
     ("revenue_at_risk_top",    [r"top.+supplier.+revenue", r"highest.+revenue.+risk",
                                 r"supplier.+highest.+risk", r"top.+risk",
                                 r"revenue.+risk.+supplier", r"worst.+supplier"]),
@@ -62,7 +64,7 @@ def detect_intent(text: str) -> str:
     return "unknown"
 
 
-# -- query + response builders -------------------------------------------------
+# -- handlers (ALL UNCHANGED) --------------------------------------------------
 
 def handle_revenue_at_risk_top(_q: str) -> str:
     df = run(
@@ -312,18 +314,20 @@ if "messages" not in st.session_state:
     ]
 
 for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
+    avatar = "🔗" if msg["role"] == "assistant" else "👤"
+    with st.chat_message(msg["role"], avatar=avatar):
         st.markdown(msg["content"])
 
 if prompt := (st.session_state.pop("_prefill", None) or st.chat_input("Ask a supply-chain question...")):
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
+    with st.chat_message("user", avatar="👤"):
         st.markdown(prompt)
 
-    intent = detect_intent(prompt)
-    handler = HANDLERS.get(intent, handle_unknown)
-    response = handler(prompt)
+    with st.chat_message("assistant", avatar="🔗"):
+        with st.spinner("Querying governed analytics views..."):
+            intent = detect_intent(prompt)
+            handler = HANDLERS.get(intent, handle_unknown)
+            response = handler(prompt)
+        st.markdown(response)
 
     st.session_state.messages.append({"role": "assistant", "content": response})
-    with st.chat_message("assistant"):
-        st.markdown(response)
