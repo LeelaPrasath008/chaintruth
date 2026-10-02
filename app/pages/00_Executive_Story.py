@@ -4,7 +4,7 @@ import pandas as pd
 from utils.db import run_query as run, safe_float
 from utils.theme import T
 from utils.components import page_header, kpi_card, kpi_grid, section, insight, insight_panel, footer, status_chip
-from utils.charts import apply_light, SERIES
+from utils.charts import render_chart, SERIES
 
 page_header("Executive Story", "The complete ChainTruth narrative — from problem to business value")
 
@@ -166,10 +166,8 @@ for name, val, color in [("ERP (Canonical)", erp_otif, SERIES[4]), ("Logistics",
     ))
 fig_bar.update_layout(
     showlegend=False, yaxis_range=[0, 100], yaxis_title="OTIF Rate (%)",
-    title=dict(text="Same Data, Three Answers", font=dict(color=T["text"], size=16)),
 )
-apply_light(fig_bar, 380)
-st.plotly_chart(fig_bar, use_container_width=True)
+render_chart(fig_bar, "bar", "Same data, three answers", legend="none")
 
 # ==============================================================================
 # SECTION 3 — ROOT CAUSE

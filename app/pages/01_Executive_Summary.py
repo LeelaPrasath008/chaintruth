@@ -4,7 +4,7 @@ import pandas as pd
 from utils.db import run_query as run, safe_float
 from utils.theme import T
 from utils.components import page_header, kpi_card, kpi_grid, section, insight, insight_panel, footer
-from utils.charts import apply_light, SERIES
+from utils.charts import SERIES
 
 page_header("Executive Summary", "One-minute overview for leadership")
 

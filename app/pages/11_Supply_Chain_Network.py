@@ -5,7 +5,7 @@ import numpy as np
 from utils.db import run_query as run, safe_float
 from utils.theme import T
 from utils.components import page_header, kpi_card, kpi_grid, section, footer
-from utils.charts import apply_light, SERIES
+from utils.charts import render_chart, SERIES
 
 page_header("Supply Chain Network", "Supplier to Plant to Customer flow visualization")
 
@@ -125,12 +125,8 @@ fig.update_layout(
              font=dict(size=13, color=SERIES[2]), xref="x", yref="y"),
     ],
 )
-apply_light(fig, 700)
-st.plotly_chart(fig, use_container_width=True)
-
-st.caption(
-    f"Showing top {max_suppliers} suppliers and {max_customers} customers. "
-    f"Use sidebar filters to focus on specific regions or segments."
-)
+render_chart(fig, "network", "Supplier \u2192 Plant \u2192 Customer network",
+             subtitle=f"Showing top {max_suppliers} suppliers and {max_customers} customers. Use sidebar filters to focus on specific regions or segments.",
+             legend="none")
 
 footer()

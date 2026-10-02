@@ -5,8 +5,15 @@ import pandas as pd
 from utils.db import run_query as run, safe_float
 from utils.theme import T
 from utils.components import page_header, kpi_card, kpi_grid, section, insight, insight_panel, alert_card, footer
-from utils.charts import apply_light, SERIES
+from utils.charts import render_chart, SERIES
 
+st.markdown(
+    f'<div style="text-align:center; padding:24px 0 6px 0;">'
+    f'<span style="font-size:42px; font-weight:800; color:{T["primary"]}; letter-spacing:-1px;">'
+    f'Chain<span style="color:{T["text"]};">Truth</span></span>'
+    f'</div>',
+    unsafe_allow_html=True,
+)
 page_header("Dashboard", "Supply chain governance and decision intelligence")
 
 # -- sidebar filters -----------------------------------------------------------
@@ -167,9 +174,7 @@ with col_l:
             text=[f"{val:.1f}%"], textposition="outside",
         ))
     fig_otif.update_layout(showlegend=False, yaxis_range=[0, 100], yaxis_title="OTIF Rate (%)")
-    apply_light(fig_otif, 380)
-    st.plotly_chart(fig_otif, use_container_width=True)
-    st.caption("Same underlying shipment data produces three different OTIF numbers.")
+    render_chart(fig_otif, "bar", "OTIF by Definition", subtitle="Same underlying shipment data produces three different OTIF numbers.", legend="none")
 
 with col_r:
     fig_gauge = go.Figure(go.Indicator(
@@ -189,8 +194,7 @@ with col_r:
             "threshold": {"line": {"color": T["danger"], "width": 2}, "thickness": 0.8, "value": 50},
         },
     ))
-    apply_light(fig_gauge, 380)
-    st.plotly_chart(fig_gauge, use_container_width=True)
+    render_chart(fig_gauge, "gauge", "Conflict Rate", legend="none")
 
 # -- risk analytics ------------------------------------------------------------
 section("Risk analytics")
@@ -211,9 +215,7 @@ with col_l2:
         )
         fig_rev.update_traces(marker_color=SERIES[4], textposition="outside")
         fig_rev.update_layout(yaxis=dict(autorange="reversed"))
-        apply_light(fig_rev, 380)
-        st.plotly_chart(fig_rev, use_container_width=True)
-        st.caption("Top 10 suppliers ranked by absolute revenue exposure.")
+        render_chart(fig_rev, "bar", "Revenue at Risk by Supplier", subtitle="Top 10 suppliers ranked by absolute revenue exposure.", legend="none")
     else:
         st.info("No revenue at risk data for current filters.")
 
@@ -236,9 +238,7 @@ with col_r2:
         hole=0.5,
     )
     fig_donut.update_traces(textinfo="percent+label", textposition="outside")
-    apply_light(fig_donut, 380)
-    st.plotly_chart(fig_donut, use_container_width=True)
-    st.caption("Risk breakdown by type — late delivery is the dominant driver.")
+    render_chart(fig_donut, "donut", "Risk Breakdown by Type", subtitle="Risk breakdown by type — late delivery is the dominant driver.")
 
 # -- trend charts --------------------------------------------------------------
 section("Trends")
@@ -254,9 +254,7 @@ with col_l3:
     fig_lt = px.line(lt_trend, x="ORDER_MONTH", y="AVG_LEAD_TIME",
                      markers=True, labels={"ORDER_MONTH": "Month", "AVG_LEAD_TIME": "Avg lead time (days)"})
     fig_lt.update_traces(line_color=SERIES[0])
-    apply_light(fig_lt, 340)
-    st.plotly_chart(fig_lt, use_container_width=True)
-    st.caption("Monthly weighted-average lead time from order placement to delivery.")
+    render_chart(fig_lt, "line", "Average Lead Time", subtitle="Monthly weighted-average lead time from order placement to delivery.")
 
 with col_r3:
     conflict_trend = run(
@@ -269,9 +267,7 @@ with col_r3:
                            labels={"ORDER_MONTH": "Month", "CONFLICT_RATE": "Conflict rate (%)"})
     fig_conflict.update_traces(line_color=SERIES[4], fillcolor="rgba(209,73,91,0.08)")
     fig_conflict.update_layout(yaxis_range=[0, 100])
-    apply_light(fig_conflict, 340)
-    st.plotly_chart(fig_conflict, use_container_width=True)
-    st.caption("Percentage of shipments receiving conflicting on-time verdicts each month.")
+    render_chart(fig_conflict, "area", "Conflict Rate Over Time", subtitle="Percentage of shipments receiving conflicting on-time verdicts each month.")
 
 # -- executive insights --------------------------------------------------------
 section("Executive insights")

@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from utils.db import run_query as run, safe_float
 from utils.theme import T
 from utils.components import page_header, kpi_card, kpi_grid, section, insight, footer
-from utils.charts import apply_light, SERIES
+from utils.charts import render_chart, SERIES
 
 page_header("Supplier Risk", "Identifying which suppliers put the most revenue at risk and why")
 
@@ -141,25 +141,22 @@ with col_l:
     trend_long["Risk Type"] = trend_long["Risk Type"].map({
         "LATE_REVENUE": "Late Delivery", "SHORT_REVENUE": "Short Shipped", "OVERDUE_REVENUE": "Overdue Open"})
     fig_trend = px.area(trend_long, x="ORDER_MONTH", y="Revenue", color="Risk Type",
-                        title="Revenue At Risk by Type (Monthly)",
                         labels={"ORDER_MONTH": "Month", "Revenue": "Revenue ($)"},
                         color_discrete_map={"Late Delivery": T["danger"], "Short Shipped": T["warning"], "Overdue Open": SERIES[5]})
     fig_trend.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-    apply_light(fig_trend, 380)
-    st.plotly_chart(fig_trend, use_container_width=True)
+    render_chart(fig_trend, "area", "Revenue At Risk by Type (Monthly)")
 
 with col_r:
     rev_totals = pd.DataFrame({
         "Risk Type": ["Late Delivery", "Short Shipped", "Overdue Open"],
         "Revenue": [float(suppliers["LATE_REVENUE"].sum()), float(suppliers["SHORT_REVENUE"].sum()),
                     float(suppliers["OVERDUE_REVENUE"].sum())]})
-    fig_donut = px.pie(rev_totals, names="Risk Type", values="Revenue", title="Risk Breakdown by Type",
+    fig_donut = px.pie(rev_totals, names="Risk Type", values="Revenue",
                        color="Risk Type",
                        color_discrete_map={"Late Delivery": T["danger"], "Short Shipped": T["warning"], "Overdue Open": SERIES[5]},
                        hole=0.5)
     fig_donut.update_traces(textinfo="percent+label", textposition="outside", textfont_color=T["text_muted"])
-    apply_light(fig_donut, 380)
-    st.plotly_chart(fig_donut, use_container_width=True)
+    render_chart(fig_donut, "donut", "Risk Breakdown by Type")
 
 section("Supplier and region breakdown")
 col_l2, col_r2 = st.columns(2)
@@ -173,11 +170,10 @@ with col_l2:
                              textposition="auto", textfont_color=T["text"]))
     fig_sup.add_trace(go.Bar(y=top10["SUPPLIER_NAME"], x=top10["SAFE_REVENUE"],
                              name="Safe", orientation="h", marker_color=T["success"]))
-    fig_sup.update_layout(title="Top 10 Suppliers: At Risk vs Safe Revenue", barmode="stack",
+    fig_sup.update_layout(barmode="stack",
                           yaxis=dict(autorange="reversed"), xaxis_title="Revenue ($)",
                           legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-    apply_light(fig_sup, 380)
-    st.plotly_chart(fig_sup, use_container_width=True)
+    render_chart(fig_sup, "bar", "Top 10 Suppliers: At Risk vs Safe Revenue")
 
 with col_r2:
     fig_reg = go.Figure()
@@ -187,10 +183,9 @@ with col_r2:
                              name="Short", marker_color=T["warning"]))
     fig_reg.add_trace(go.Bar(x=by_region["SUPPLIER_REGION"], y=by_region["OVERDUE_ORDERS"],
                              name="Overdue", marker_color=SERIES[5]))
-    fig_reg.update_layout(title="Risk Type by Region", barmode="stack", yaxis_title="Orders",
+    fig_reg.update_layout(barmode="stack", yaxis_title="Orders",
                           legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-    apply_light(fig_reg, 380)
-    st.plotly_chart(fig_reg, use_container_width=True)
+    render_chart(fig_reg, "bar", "Risk Type by Region")
 
 # =============================================================================
 # RISK CONCENTRATION
@@ -201,14 +196,13 @@ col_l3, col_r3 = st.columns(2)
 with col_l3:
     fig_scatter = px.scatter(suppliers, x="TOTAL_ORDER_VALUE", y="RISK_PCT",
                              size="AT_RISK_ORDERS", color="SUPPLIER_REGION",
-                             hover_name="SUPPLIER_NAME", title="Order Volume vs Risk Rate",
+                             hover_name="SUPPLIER_NAME",
                              labels={"TOTAL_ORDER_VALUE": "Total Order Value ($)", "RISK_PCT": "Risk Rate (%)",
                                      "SUPPLIER_REGION": "Region"})
     fig_scatter.add_hline(y=float(risk_pct), line_dash="dash", line_color=T["text_muted"],
                           annotation_text=f"Avg {float(risk_pct):.0f}%", annotation_font_color=T["text_muted"])
     fig_scatter.update_layout(yaxis_range=[0, 105])
-    apply_light(fig_scatter, 380)
-    st.plotly_chart(fig_scatter, use_container_width=True)
+    render_chart(fig_scatter, "scatter", "Order Volume vs Risk Rate")
 
 with col_r3:
     heatmap_sql = (
@@ -220,12 +214,11 @@ with col_r3:
     hm = run(heatmap_sql)
     if not hm.empty:
         hm_pivot = hm.pivot(index="SUPPLIER_REGION", columns="CUSTOMER_SEGMENT", values="RISK_PCT")
-        fig_hm = px.imshow(hm_pivot, text_auto=".0f", title="Risk Rate: Region x Segment (%)",
+        fig_hm = px.imshow(hm_pivot, text_auto=".0f",
                            labels=dict(x="Customer Segment", y="Supplier Region", color="Risk %"),
                            color_continuous_scale=[[0, T["surface"]], [0.5, "#C77700"], [1, T["danger"]]],
                            aspect="auto")
-        apply_light(fig_hm, 380)
-        st.plotly_chart(fig_hm, use_container_width=True)
+        render_chart(fig_hm, "heatmap", "Risk Rate: Region x Segment (%)", legend="none")
     else:
         st.info("No data for heatmap with current filters.")
 

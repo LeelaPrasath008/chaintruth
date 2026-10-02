@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from utils.db import run_query as run, safe_float
 from utils.theme import T
 from utils.components import page_header, kpi_card, kpi_grid, section, insight, footer
-from utils.charts import apply_light, SERIES
+from utils.charts import render_chart, SERIES
 
 page_header("Conflict Center", "Quantifying how competing OTIF definitions produce different verdicts from identical data")
 
@@ -87,24 +87,21 @@ trend = run(
 col_l, col_r = st.columns(2)
 with col_l:
     fig_conflict = px.area(trend, x="ORDER_MONTH", y="CONFLICT_RATE",
-                           title="Conflict Rate Over Time",
                            labels={"ORDER_MONTH": "Month", "CONFLICT_RATE": "Conflict Rate (%)"})
     fig_conflict.update_traces(line_color=SERIES[4], fillcolor="rgba(209,73,91,0.12)")
     fig_conflict.update_layout(yaxis_range=[0, 100])
-    apply_light(fig_conflict)
-    st.plotly_chart(fig_conflict, use_container_width=True)
+    render_chart(fig_conflict, "area", "Conflict Rate Over Time")
 
 with col_r:
     otif_long = trend.melt(id_vars="ORDER_MONTH", value_vars=["ERP_OT", "LOG_OT", "SUP_OT"],
                            var_name="Definition", value_name="On-Time Rate (%)")
     otif_long["Definition"] = otif_long["Definition"].map({"ERP_OT": "ERP", "LOG_OT": "Logistics", "SUP_OT": "Supplier"})
     fig_otif = px.line(otif_long, x="ORDER_MONTH", y="On-Time Rate (%)", color="Definition",
-                       markers=True, title="On-Time Rate by Definition Over Time",
+                       markers=True,
                        labels={"ORDER_MONTH": "Month"},
                        color_discrete_map={"ERP": SERIES[4], "Logistics": SERIES[2], "Supplier": SERIES[1]})
     fig_otif.update_layout(yaxis_range=[0, 100])
-    apply_light(fig_otif)
-    st.plotly_chart(fig_otif, use_container_width=True)
+    render_chart(fig_otif, "line", "On-Time Rate by Definition Over Time")
 
 # =============================================================================
 # WHERE CONFLICTS ARE WORST
@@ -140,13 +137,11 @@ col_l2, col_r2 = st.columns(2)
 with col_l2:
     top_n = by_supplier.head(10)
     fig_sup = px.bar(top_n, y="SUPPLIER_NAME", x="CONFLICT_RATE", orientation="h",
-                     title="Top 10 Suppliers by Conflict Rate",
                      labels={"CONFLICT_RATE": "Conflict Rate (%)", "SUPPLIER_NAME": ""},
                      text=top_n["CONFLICT_RATE"].apply(lambda v: f"{v:.0f}%"))
     fig_sup.update_traces(marker_color=SERIES[4], textfont_color=T["text_muted"], textposition="outside")
     fig_sup.update_layout(yaxis=dict(autorange="reversed"), xaxis_range=[0, 100])
-    apply_light(fig_sup)
-    st.plotly_chart(fig_sup, use_container_width=True)
+    render_chart(fig_sup, "bar", "Top 10 Suppliers by Conflict Rate", legend="none")
 
 with col_r2:
     fig_reg = go.Figure()
@@ -154,12 +149,11 @@ with col_r2:
                              name="ERP On-Time", orientation="h", marker_color=SERIES[4]))
     fig_reg.add_trace(go.Bar(y=by_region["SUPPLIER_REGION"], x=by_region["SUP_OT"],
                              name="Supplier On-Time", orientation="h", marker_color=SERIES[1]))
-    fig_reg.update_layout(title="ERP vs Supplier On-Time Rate by Region", barmode="group",
+    fig_reg.update_layout(barmode="group",
                           xaxis_title="On-Time Rate (%)", yaxis=dict(autorange="reversed"),
                           xaxis_range=[0, 100],
                           legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-    apply_light(fig_reg)
-    st.plotly_chart(fig_reg, use_container_width=True)
+    render_chart(fig_reg, "bar", "ERP vs Supplier On-Time Rate by Region")
 
 # =============================================================================
 # SPREAD ANALYSIS
@@ -171,22 +165,18 @@ with col_l3:
     fig_scatter = px.scatter(by_supplier, x="RELIABILITY_SCORE", y="SPREAD",
                              size="SHIPMENTS", color="SUPPLIER_REGION",
                              hover_name="SUPPLIER_NAME",
-                             title="Reliability Score vs Definition Spread",
                              labels={"RELIABILITY_SCORE": "Reliability Score",
                                      "SPREAD": "Spread (Supplier OT - ERP OT, pp)",
                                      "SUPPLIER_REGION": "Region"})
     fig_scatter.add_hline(y=0, line_dash="dash", line_color=T["text_muted"], annotation_text="No spread",
                           annotation_font_color=T["text_muted"])
-    apply_light(fig_scatter)
-    st.plotly_chart(fig_scatter, use_container_width=True)
+    render_chart(fig_scatter, "scatter", "Reliability Score vs Definition Spread")
 
 with col_r3:
     fig_box = px.box(by_supplier, x="SUPPLIER_REGION", y="SPREAD", color="SUPPLIER_REGION",
-                     title="Spread Distribution by Region",
                      labels={"SUPPLIER_REGION": "Region", "SPREAD": "Spread (pp)"})
     fig_box.update_layout(showlegend=False)
-    apply_light(fig_box)
-    st.plotly_chart(fig_box, use_container_width=True)
+    render_chart(fig_box, "box", "Spread Distribution by Region", legend="none")
 
 # =============================================================================
 # SUPPLIER DETAIL

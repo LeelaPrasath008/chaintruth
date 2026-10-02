@@ -37,7 +37,7 @@ def sidebar_brand():
     st.sidebar.markdown(
         '<div class="ct-sidebar-brand">'
         '<div class="ct-logo">Chain<span>Truth</span></div>'
-        '<span class="ct-env">HACKATHON 2026</span>'
+        '<span class="ct-env">ENTERPRISE ANALYTICS</span>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -164,7 +164,7 @@ def empty_state(msg: str):
 def footer():
     st.markdown(
         '<div class="ct-footer">'
-        'ChainTruth &middot; Built with Snowflake &amp; CoCo CLI &middot; Hackathon 2026'
+        'ChainTruth &middot; Supply Chain Governance Platform'
         '</div>',
         unsafe_allow_html=True,
     )

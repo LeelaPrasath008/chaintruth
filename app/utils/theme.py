@@ -102,6 +102,8 @@ section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"][aria-current="
     text-align: left; padding: 16px 20px 12px 20px;
     border-bottom: 1px solid rgba(255,255,255,.1);
     margin-bottom: 8px;
+    position: sticky; top: 0; z-index: 999;
+    background: {T["sidebar_bg"]};
 }}
 .ct-sidebar-brand .ct-logo {{
     font-size: 18px; font-weight: 700; color: #FFFFFF !important;

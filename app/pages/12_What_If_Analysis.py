@@ -4,7 +4,7 @@ import pandas as pd
 from utils.db import run_query as run, safe_float
 from utils.theme import T
 from utils.components import page_header, kpi_card, kpi_grid, section, footer
-from utils.charts import apply_light, SERIES
+from utils.charts import render_chart, SERIES
 
 page_header("What-If Analysis", "Interactive simulator — project impact of supply chain improvements")
 
@@ -112,11 +112,9 @@ with col_chart1:
         text=[f"{projected['erp_otif']:.1f}%", f"{projected['fill_rate']:.1f}%"],
         textposition="outside",
     ))
-    fig.update_layout(barmode="group", yaxis_range=[0, 110],
-                      legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-    apply_light(fig, 350)
-    st.plotly_chart(fig, use_container_width=True)
-    st.caption("Performance improvement: current baseline vs projected after improvements.")
+    fig.update_layout(barmode="group", yaxis_range=[0, 110])
+    render_chart(fig, "bar", "Performance improvement",
+                 subtitle="Current baseline vs projected after improvements.")
 
 with col_chart2:
     metrics2 = ["Conflict Rate", "Revenue Risk %", "Lead Time (d)"]
@@ -129,11 +127,9 @@ with col_chart2:
         x=metrics2, y=[projected["conflict_rate"], projected["risk_pct"], projected["lead_time"]],
         name="Projected", marker_color=SERIES[0],
     ))
-    fig2.update_layout(barmode="group",
-                       legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-    apply_light(fig2, 350)
-    st.plotly_chart(fig2, use_container_width=True)
-    st.caption("Risk reduction: lower conflict, revenue risk, and lead time.")
+    fig2.update_layout(barmode="group")
+    render_chart(fig2, "bar", "Risk reduction",
+                 subtitle="Lower conflict, revenue risk, and lead time.")
 
 # -- revenue impact ------------------------------------------------------------
 section("Revenue impact summary")

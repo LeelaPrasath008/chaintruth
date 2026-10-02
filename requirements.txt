@@ -1,0 +1,5 @@
+streamlit>=1.64.0,<2.0
+plotly>=7.0.0,<8.0
+pandas>=2.0,<4.0
+numpy>=1.24,<3.0
+snowflake-connector-python>=3.6,<5.0
